@@ -99,3 +99,14 @@ Le verrou est un fichier `.lock` dans `out/`.
 - Verrouiller : cree `out/<nom>.lock`
 - Deverrouiller : supprime le `.lock`
 - Les actions sont ecrites dans `out/audit.log`
+
+## Bonus Docker 
+1) Construire l'image :
+```bash
+docker build -t tp_examen_golang .
+```
+
+2) Lancer le conteneur :
+```bash
+docker run -it --rm tp_examen_golang
+```
