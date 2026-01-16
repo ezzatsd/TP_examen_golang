@@ -1,0 +1,11 @@
+Rapport multi-fichiers
+
+Fichier: data/input.txt
+  Taille: 141
+  Lignes: 4
+  Mots: 21 (4.90)
+
+Totaux
+  Taille: 141
+  Lignes: 4
+  Mots: 21

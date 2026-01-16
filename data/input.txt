@@ -1,0 +1,4 @@
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+Integer 12345 vitae magna 67890.
+Go est simple et efficace.
+Un autre ligne de test.
