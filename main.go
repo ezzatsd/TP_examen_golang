@@ -18,6 +18,7 @@ type Config struct {
 }
 
 func main() {
+	// Charger la config et creer le dossier de sortie
 	cfg := readConfig("config.txt")
 	_ = os.MkdirAll(cfg.OutDir, 0o755)
 
@@ -25,6 +26,7 @@ func main() {
 	currentFile := cfg.DefaultFile
 
 	for {
+		// Boucle principale du menu
 		fmt.Println("\n=== Menu FileOps ===")
 		fmt.Println("Fichier courant:", currentFile)
 		fmt.Println("1) Choisir le fichier courant")
@@ -74,6 +76,7 @@ func main() {
 }
 
 func readConfig(path string) Config {
+	// Valeurs par defaut si config.txt est absent ou incomplet
 	cfg := Config{
 		DefaultFile: "data/input.txt",
 		BaseDir:     "data",
@@ -110,12 +113,14 @@ func readConfig(path string) Config {
 }
 
 func ask(r *bufio.Reader, prompt string) string {
+	// Lire une ligne saisie par l'utilisateur
 	fmt.Print(prompt)
 	text, _ := r.ReadString('\n')
 	return strings.TrimSpace(text)
 }
 
 func isFile(path string) bool {
+	// Verifier que le chemin existe et que c'est un fichier
 	info, err := os.Stat(path)
 	if err != nil {
 		return false
@@ -124,6 +129,7 @@ func isFile(path string) bool {
 }
 
 func analyzeFile(path string, cfg Config, reader *bufio.Reader) error {
+	// Lire le fichier et afficher les infos de base + stats
 	lines, err := readLines(path)
 	if err != nil {
 		return err
@@ -143,6 +149,7 @@ func analyzeFile(path string, cfg Config, reader *bufio.Reader) error {
 	fmt.Println("Nb mots (sans numeriques):", wordCount)
 	fmt.Printf("Longueur moyenne: %.2f\n", avg)
 
+	// Demander un mot-cle et creer les fichiers filtres
 	keyword := ask(reader, "Mot-cle: ")
 	countKey, withKey, withoutKey := filterByKeyword(lines, keyword)
 	fmt.Println("Lignes contenant le mot-cle:", countKey)
@@ -154,6 +161,7 @@ func analyzeFile(path string, cfg Config, reader *bufio.Reader) error {
 		return err
 	}
 
+	// Demander N pour ecrire les fichiers head/tail
 	n := toInt(ask(reader, "N pour head/tail (defaut 5): "), 5)
 	if n <= 0 {
 		n = 5
@@ -170,6 +178,7 @@ func analyzeFile(path string, cfg Config, reader *bufio.Reader) error {
 }
 
 func analyzeDir(dir string, cfg Config) error {
+	// Analyser tous les fichiers texte du repertoire
 	files, err := listTxt(dir, cfg.DefaultExt)
 	if err != nil {
 		return err
@@ -209,6 +218,7 @@ func analyzeDir(dir string, cfg Config) error {
 	report.WriteString(fmt.Sprintf("  Lignes: %d\n", totalLines))
 	report.WriteString(fmt.Sprintf("  Mots: %d\n", totalWords))
 
+	// Ecrire report index et merged dans out/
 	if err := os.WriteFile(filepath.Join(cfg.OutDir, "report.txt"), []byte(report.String()), 0o644); err != nil {
 		return err
 	}
@@ -224,6 +234,7 @@ func analyzeDir(dir string, cfg Config) error {
 }
 
 func readLines(path string) ([]string, error) {
+	// Lire toutes les lignes d'un fichier texte
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -239,6 +250,7 @@ func readLines(path string) ([]string, error) {
 }
 
 func wordStats(lines []string) (int, float64) {
+	// Compter les mots (ignorer les nombres) et calculer la moyenne
 	count := 0
 	totalLen := 0
 	for _, line := range lines {
@@ -258,6 +270,7 @@ func wordStats(lines []string) (int, float64) {
 }
 
 func isNumber(s string) bool {
+	// Retourner vrai si la chaine ne contient que des chiffres
 	for _, r := range s {
 		if r < '0' || r > '9' {
 			return false
@@ -267,6 +280,7 @@ func isNumber(s string) bool {
 }
 
 func filterByKeyword(lines []string, key string) (int, []string, []string) {
+	// Separer les lignes selon le mot-cle
 	count := 0
 	var withKey []string
 	var withoutKey []string
@@ -282,6 +296,7 @@ func filterByKeyword(lines []string, key string) (int, []string, []string) {
 }
 
 func writeLines(path string, lines []string) error {
+	// Ecrire les lignes dans un fichier (avec saut de ligne final)
 	content := strings.Join(lines, "\n")
 	if content != "" {
 		content += "\n"
@@ -290,6 +305,7 @@ func writeLines(path string, lines []string) error {
 }
 
 func toInt(s string, def int) int {
+	// Convertir en int ou retourner la valeur par defaut
 	if s == "" {
 		return def
 	}
@@ -301,6 +317,7 @@ func toInt(s string, def int) int {
 }
 
 func head(lines []string, n int) []string {
+	// Prendre les N premieres lignes
 	if n >= len(lines) {
 		return lines
 	}
@@ -308,6 +325,7 @@ func head(lines []string, n int) []string {
 }
 
 func tail(lines []string, n int) []string {
+	// Prendre les N dernieres lignes
 	if n >= len(lines) {
 		return lines
 	}
@@ -315,6 +333,7 @@ func tail(lines []string, n int) []string {
 }
 
 func listTxt(dir, ext string) ([]string, error) {
+	// Recupere tous les fichiers avec l'extension demandee
 	info, err := os.Stat(dir)
 	if err != nil {
 		return nil, err
@@ -340,6 +359,7 @@ func listTxt(dir, ext string) ([]string, error) {
 }
 
 func writeIndex(files []string, outDir string) error {
+	// Ecrire un index simple (chemin, taille, date)
 	var b strings.Builder
 	for _, path := range files {
 		info, err := os.Stat(path)
@@ -352,6 +372,7 @@ func writeIndex(files []string, outDir string) error {
 }
 
 func mergeFiles(dir, ext, outPath string) error {
+	// Fusionner tous les fichiers texte dans un seul fichier
 	files, err := listTxt(dir, ext)
 	if err != nil {
 		return err
