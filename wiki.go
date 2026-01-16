@@ -13,7 +13,7 @@ import (
 )
 
 func analyzeWikipedia(cfg Config, reader *bufio.Reader) error {
-	// Telecharger une page Wikipedia et appliquer des traitements simples
+	// Telecharger une page Wikipedia et appliquer des traitements simples.
 	article := ask(reader, "Nom de l'article (ex: Go_(langage)): ")
 	if article == "" {
 		return fmt.Errorf("article vide")
