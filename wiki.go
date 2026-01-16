@@ -19,7 +19,7 @@ func analyzeWikipedia(cfg Config, reader *bufio.Reader) error {
 		return fmt.Errorf("article vide")
 	}
 
-	lines, err := fetchWikiParagraphs(article)
+	lines, err := fetchWikiParagraphs(cfg.WikiLang, article)
 	if err != nil {
 		return err
 	}
@@ -54,9 +54,12 @@ func analyzeWikipedia(cfg Config, reader *bufio.Reader) error {
 	return nil
 }
 
-func fetchWikiParagraphs(article string) ([]string, error) {
+func fetchWikiParagraphs(lang, article string) ([]string, error) {
 	// Recuperer le texte des paragraphes Wikipedia
-	wikiURL := "https://fr.wikipedia.org/wiki/" + url.PathEscape(article)
+	if lang == "" {
+		lang = "fr"
+	}
+	wikiURL := "https://" + lang + ".wikipedia.org/wiki/" + url.PathEscape(article)
 	req, err := http.NewRequest(http.MethodGet, wikiURL, nil)
 	if err != nil {
 		return nil, err

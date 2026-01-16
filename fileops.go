@@ -24,7 +24,8 @@ func runMenu(cfg Config, reader *bufio.Reader) {
 		fmt.Println("3) Choix B - Analyse multi-fichiers")
 		fmt.Println("4) Choix C - Analyse Wikipedia")
 		fmt.Println("5) Choix D - ProcessOps")
-		fmt.Println("6) Quitter")
+		fmt.Println("6) Choix E - SecureOps")
+		fmt.Println("7) Quitter")
 
 		choice := ask(reader, "Votre choix: ")
 		switch choice {
@@ -63,10 +64,14 @@ func runMenu(cfg Config, reader *bufio.Reader) {
 				fmt.Println("Erreur:", err)
 			}
 		case "5":
-			if err := processMenu(reader); err != nil {
+			if err := processMenu(cfg, reader); err != nil {
 				fmt.Println("Erreur:", err)
 			}
 		case "6":
+			if err := secureMenu(cfg, reader); err != nil {
+				fmt.Println("Erreur:", err)
+			}
+		case "7":
 			fmt.Println("Au revoir.")
 			return
 		default:

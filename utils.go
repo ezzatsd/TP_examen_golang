@@ -2,52 +2,64 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Config struct {
-	DefaultFile string
-	BaseDir     string
-	OutDir      string
-	DefaultExt  string
+	DefaultFile string `json:"default_file"`
+	BaseDir     string `json:"base_dir"`
+	OutDir      string `json:"out_dir"`
+	DefaultExt  string `json:"default_ext"`
+	WikiLang    string `json:"wiki_lang"`
+	ProcessTopN int    `json:"process_top_n"`
 }
 
-func readConfig(path string) Config {
-	// Valeurs par defaut si config.txt est absent ou incomplet
-	cfg := Config{
+func defaultConfig() Config {
+	return Config{
 		DefaultFile: "data/input.txt",
 		BaseDir:     "data",
 		OutDir:      "out",
 		DefaultExt:  ".txt",
+		WikiLang:    "fr",
+		ProcessTopN: 10,
 	}
+}
+
+func readConfig(path string) Config {
+	// Valeurs par defaut si config.json est absent ou incomplet
+	cfg := defaultConfig()
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return cfg
 	}
-	for _, line := range strings.Split(string(data), "\n") {
-		line = strings.TrimSpace(line)
-		if line == "" || strings.HasPrefix(line, "#") {
-			continue
-		}
-		parts := strings.SplitN(line, "=", 2)
-		if len(parts) != 2 {
-			continue
-		}
-		key := strings.TrimSpace(parts[0])
-		val := strings.TrimSpace(parts[1])
-		switch key {
-		case "default_file":
-			cfg.DefaultFile = val
-		case "base_dir":
-			cfg.BaseDir = val
-		case "out_dir":
-			cfg.OutDir = val
-		case "default_ext":
-			cfg.DefaultExt = val
-		}
+
+	var userCfg Config
+	if err := json.Unmarshal(data, &userCfg); err != nil {
+		return cfg
+	}
+
+	if userCfg.DefaultFile != "" {
+		cfg.DefaultFile = userCfg.DefaultFile
+	}
+	if userCfg.BaseDir != "" {
+		cfg.BaseDir = userCfg.BaseDir
+	}
+	if userCfg.OutDir != "" {
+		cfg.OutDir = userCfg.OutDir
+	}
+	if userCfg.DefaultExt != "" {
+		cfg.DefaultExt = userCfg.DefaultExt
+	}
+	if userCfg.WikiLang != "" {
+		cfg.WikiLang = userCfg.WikiLang
+	}
+	if userCfg.ProcessTopN != 0 {
+		cfg.ProcessTopN = userCfg.ProcessTopN
 	}
 	return cfg
 }
@@ -165,4 +177,18 @@ func tail(lines []string, n int) []string {
 		return lines
 	}
 	return lines[len(lines)-n:]
+}
+
+func logAudit(outDir, action, details string) {
+	// Journaliser les actions sensibles dans out/audit.log
+	_ = os.MkdirAll(outDir, 0o755)
+	path := outDir + "/audit.log"
+	ts := time.Now().Format(time.RFC3339)
+	line := fmt.Sprintf("%s | %s | %s\n", ts, action, details)
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	_, _ = f.WriteString(line)
 }

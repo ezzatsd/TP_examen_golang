@@ -16,8 +16,12 @@ type ProcInfo struct {
 	Name string
 }
 
-func processMenu(reader *bufio.Reader) error {
+func processMenu(cfg Config, reader *bufio.Reader) error {
 	// Sous-menu ProcessOps
+	defTop := cfg.ProcessTopN
+	if defTop <= 0 {
+		defTop = 10
+	}
 	for {
 		fmt.Println("\n=== ProcessOps ===")
 		fmt.Println("1) Lister les processus (top N)")
@@ -28,7 +32,8 @@ func processMenu(reader *bufio.Reader) error {
 		choice := ask(reader, "Votre choix: ")
 		switch choice {
 		case "1":
-			n := toInt(ask(reader, "N (defaut 10): "), 10)
+			prompt := fmt.Sprintf("N (defaut %d): ", defTop)
+			n := toInt(ask(reader, prompt), defTop)
 			procs, err := listProcesses(n)
 			if err != nil {
 				fmt.Println("Erreur:", err)
@@ -61,6 +66,7 @@ func processMenu(reader *bufio.Reader) error {
 				fmt.Println("Erreur:", err)
 				continue
 			}
+			logAudit(cfg.OutDir, "kill", fmt.Sprintf("pid=%s name=%s", pid, name))
 			fmt.Println("Processus termine.")
 		case "4":
 			return nil

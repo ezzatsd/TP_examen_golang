@@ -1,0 +1,6 @@
+2026-01-16T14:09:06+01:00 | lock | file=data/input.txt lock=out/input.txt.lock
+2026-01-16T14:09:59+01:00 | unlock | file=data/input.txt lock=out/input.txt.lock
+2026-01-16T14:51:04+01:00 | lock | file=data/input.txt lock=out/input.txt.lock
+2026-01-16T14:51:28+01:00 | unlock | file=data/input.txt lock=out/input.txt.lock
+2026-01-16T14:52:23+01:00 | lock | file=data/input.txt lock=out/input.txt.lock
+2026-01-16T14:52:59+01:00 | unlock | file=data/input.txt lock=out/input.txt.lock
