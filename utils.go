@@ -1,0 +1,168 @@
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
+)
+
+type Config struct {
+	DefaultFile string
+	BaseDir     string
+	OutDir      string
+	DefaultExt  string
+}
+
+func readConfig(path string) Config {
+	// Valeurs par defaut si config.txt est absent ou incomplet
+	cfg := Config{
+		DefaultFile: "data/input.txt",
+		BaseDir:     "data",
+		OutDir:      "out",
+		DefaultExt:  ".txt",
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return cfg
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		key := strings.TrimSpace(parts[0])
+		val := strings.TrimSpace(parts[1])
+		switch key {
+		case "default_file":
+			cfg.DefaultFile = val
+		case "base_dir":
+			cfg.BaseDir = val
+		case "out_dir":
+			cfg.OutDir = val
+		case "default_ext":
+			cfg.DefaultExt = val
+		}
+	}
+	return cfg
+}
+
+func ask(r *bufio.Reader, prompt string) string {
+	// Lire une ligne saisie par l'utilisateur
+	fmt.Print(prompt)
+	text, _ := r.ReadString('\n')
+	return strings.TrimSpace(text)
+}
+
+func isFile(path string) bool {
+	// Verifier que le chemin existe et que c'est un fichier
+	info, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return !info.IsDir()
+}
+
+func readLines(path string) ([]string, error) {
+	// Lire toutes les lignes d'un fichier texte
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	return lines, scanner.Err()
+}
+
+func wordStats(lines []string) (int, float64) {
+	// Compter les mots (ignorer les nombres) et calculer la moyenne
+	count := 0
+	totalLen := 0
+	for _, line := range lines {
+		for _, tok := range strings.Fields(line) {
+			w := strings.Trim(tok, ".,;:!?\"'()[]{}")
+			if w == "" || isNumber(w) {
+				continue
+			}
+			count++
+			totalLen += len(w)
+		}
+	}
+	if count == 0 {
+		return 0, 0
+	}
+	return count, float64(totalLen) / float64(count)
+}
+
+func isNumber(s string) bool {
+	// Retourner vrai si la chaine ne contient que des chiffres
+	for _, r := range s {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+	return s != ""
+}
+
+func filterByKeyword(lines []string, key string) (int, []string, []string) {
+	// Separer les lignes selon le mot-cle
+	count := 0
+	var withKey []string
+	var withoutKey []string
+	for _, line := range lines {
+		if strings.Contains(line, key) {
+			count++
+			withKey = append(withKey, line)
+		} else {
+			withoutKey = append(withoutKey, line)
+		}
+	}
+	return count, withKey, withoutKey
+}
+
+func writeLines(path string, lines []string) error {
+	// Ecrire les lignes dans un fichier (avec saut de ligne final)
+	content := strings.Join(lines, "\n")
+	if content != "" {
+		content += "\n"
+	}
+	return os.WriteFile(path, []byte(content), 0o644)
+}
+
+func toInt(s string, def int) int {
+	// Convertir en int ou retourner la valeur par defaut
+	if s == "" {
+		return def
+	}
+	n, err := strconv.Atoi(s)
+	if err != nil {
+		return def
+	}
+	return n
+}
+
+func head(lines []string, n int) []string {
+	// Prendre les N premieres lignes
+	if n >= len(lines) {
+		return lines
+	}
+	return lines[:n]
+}
+
+func tail(lines []string, n int) []string {
+	// Prendre les N dernieres lignes
+	if n >= len(lines) {
+		return lines
+	}
+	return lines[len(lines)-n:]
+}
